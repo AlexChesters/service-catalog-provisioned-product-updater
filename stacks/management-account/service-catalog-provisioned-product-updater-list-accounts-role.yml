@@ -1,0 +1,26 @@
+Description: IAM role for use by AlexChesters/horatio to allow account listing
+Resources:
+  ServiceCatalogProductUpdaterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              AWS:
+                # TODO: lock down to a specific role
+                - "446190845838"
+              Service:
+                - states.amazonaws.com
+      RoleName: service-catalog-provisioned-product-updater-role
+      Policies:
+        - PolicyName: service-catalog-provisioned-product-updater-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - organizations:ListAccounts
+                Resource:
+                  - "*"
