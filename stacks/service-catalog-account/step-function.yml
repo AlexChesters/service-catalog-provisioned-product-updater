@@ -34,9 +34,9 @@ Resources:
                     - !Ref ListAccountsRoleArn
                 - Effect: Allow
                   Action:
-                    - servicecatalog:DescribeProduct
+                    - lambda:InvokeFunction
                   Resource:
-                    - !Sub "arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*"
+                    - !Sub "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-sc-product-updater-*"
   StateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
@@ -48,10 +48,12 @@ Resources:
           DescribeProduct:
             Type: Task
             Next: ListAccounts
-            Resource: arn:aws:states:::aws-sdk:servicecatalog:describeProduct
-            OutputPath: $.ProvisioningArtifacts
+            Resource: arn:aws:states:::lambda:invoke
             Parameters:
-              Name.$: $$.Execution.Input.product_name
+              # despite the parameter being called FunctionName, it actually takes an ARN
+              FunctionName: !Sub "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-sc-product-updater-get-latest-version"
+              Payload:
+                product_name.$: $$.Execution.Input.product_name
           ListAccounts:
             Type: Task
             End: true
