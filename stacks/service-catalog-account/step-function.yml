@@ -50,7 +50,7 @@ Resources:
             Next: ListAccounts
             Resource: arn:aws:states:::aws-sdk:servicecatalog:describeProduct
             Parameters:
-              Name: $$.Execution.Input.product_name
+              Name.$: $$.Execution.Input.product_name
           ListAccounts:
             Type: Task
             End: true
