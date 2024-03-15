@@ -49,6 +49,7 @@ Resources:
             Type: Task
             Next: ListAccounts
             Resource: arn:aws:states:::lambda:invoke
+            OutputPath: $.Payload
             Parameters:
               # despite the parameter being called FunctionName, it actually takes an ARN
               FunctionName: !Sub "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-sc-product-updater-get-latest-version"
