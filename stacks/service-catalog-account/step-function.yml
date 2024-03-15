@@ -49,7 +49,7 @@ Resources:
             Type: Task
             Next: ListAccounts
             Resource: arn:aws:states:::lambda:invoke
-            ResultPath: $.latest_version_id
+            ResultPath: $.describe_product_result
             ResultSelector:
               latest_version_id.$: $.Payload
             Parameters:
@@ -62,11 +62,12 @@ Resources:
             Next: ProcessAccounts
             Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
             Parameters: {}
-            ResultPath: $.accounts
+            ResultPath: $.list_accounts_result
             Credentials:
               RoleArn: !Ref ListAccountsRoleArn
           ProcessAccounts:
             Type: Map
+            ItemsPath: $.list_accounts_result.Accounts
             End: true
             MaxConcurrency: 3
             Iterator:
