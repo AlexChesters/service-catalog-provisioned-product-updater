@@ -61,5 +61,7 @@ Resources:
             End: true
             Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
             Parameters: {}
+            OutputPath: $.Accounts
+            ResultPath: $.accounts
             Credentials:
               RoleArn: !Ref ListAccountsRoleArn
