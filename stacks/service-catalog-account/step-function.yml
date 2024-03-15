@@ -47,10 +47,20 @@ Resources:
         States:
           DescribeProduct:
             Type: Task
-            Next: ListAccounts
+            Next: FindLatestVersion
             Resource: arn:aws:states:::aws-sdk:servicecatalog:describeProduct
+            OutputPath: $.ProvisioningArtifacts
             Parameters:
               Name.$: $$.Execution.Input.product_name
+          FindLatestVersion:
+            Type: Task
+            Next: ListAccounts
+            Resource: arn:aws:states:::array:filter
+            Parameters:
+              InputPath: $
+              ResultPath: $.filtered
+              Filter:
+                Guidance: DEFAULT
           ListAccounts:
             Type: Task
             End: true
