@@ -1,6 +1,7 @@
 {
   "Parameters": {
-    "Environment": "live"
+    "Environment": "live",
+    "ListAccountsRoleArn": "arn:aws:iam::008356366354:role/organisation-list-accounts-role"
   },
   "Tags": {
     "Project": "service-catalog-provisioned-product-updater",

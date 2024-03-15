@@ -7,6 +7,9 @@ Parameters:
     AllowedValues:
       - test
       - live
+  ListAccountsRoleArn:
+    Description: ARN of an IAM role that can be assumed to call https://docs.aws.amazon.com/organizations/latest/APIReference/API_ListAccounts.html
+    Type: String
 Resources:
   StateMachineRole:
     Type: AWS::IAM::Role
@@ -19,13 +22,28 @@ Resources:
             Principal:
               Service: states.amazonaws.com
       RoleName: !Sub "${Environment}-sc-provisioned-product-updater-role"
-      # Policies:
-      #   - PolicyName: state-machine-policy
-      #     PolicyDocument:
-      #       Version: 2012-10-17
-      #       Statement:
-      #           - Effect: Allow
-      #             Action:
-      #               - lambda:InvokeFunction
-      #             Resource:
-      #               - !GetAtt Function.Arn
+      Policies:
+        - PolicyName: state-machine-policy
+          PolicyDocument:
+            Version: 2012-10-17
+            Statement:
+                - Effect: Allow
+                  Action:
+                    - sts:AssumeRole
+                  Resource:
+                    - !Ref ListAccountsRoleArn
+  StateMachine:
+    Type: AWS::StepFunctions::StateMachine
+    Properties:
+      StateMachineName: !Sub "${Environment}-sc-provisioned-product-updater"
+      RoleArn: !GetAtt StateMachineRole.Arn
+      Definition:
+        StartAt: ListAccounts
+        States:
+          ListAccounts:
+            Type: Task
+            End: true
+            Parameters: {}
+            Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
+            Credentials:
+              RoleArn: !Ref ListAccountsRoleArn
