@@ -64,6 +64,21 @@ Resources:
                 FullRepositoryId: AlexChesters/service-catalog-provisioned-product-updater
                 BranchName: main
                 OutputArtifactFormat: CODE_ZIP
+        - Name: Build-Lambdas
+          Actions:
+            - ActionTypeId:
+                Category: Build
+                Owner: AWS
+                Version: "1"
+                Provider: CodeBuild
+              InputArtifacts:
+                - Name: GitHubSource
+              OutputArtifacts:
+                - Name: BuiltSource
+              RunOrder: 1
+              Name: CodeBuild
+              Configuration:
+                ProjectName: !Ref CodeBuildProject
         - Name: Deploy-To-Test
           Actions:
             - ActionTypeId:
@@ -72,7 +87,7 @@ Resources:
                 Version: "1"
                 Provider: CloudFormation
               InputArtifacts:
-                - Name: GitHubSource
+                - Name: BuiltSource
               RunOrder: 1
               Name: Get-Latest-Version
               Configuration:
@@ -80,15 +95,15 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
                 StackName: test-sc-provisioned-product-updater-get-latest-version
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
-                TemplatePath: GitHubSource::stacks/service-catalog-account/apps/get-latest-version.yml
-                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/apps/parameters/get-latest-version/test.json
+                TemplatePath: BuiltSource::stacks/service-catalog-account/apps/get-latest-version.yml
+                TemplateConfiguration: BuiltSource::stacks/service-catalog-account/apps/parameters/get-latest-version/test.json
             - ActionTypeId:
                 Category: Deploy
                 Owner: AWS
                 Version: "1"
                 Provider: CloudFormation
               InputArtifacts:
-                - Name: GitHubSource
+                - Name: BuiltSource
               RunOrder: 2
               Name: Step-Function
               Configuration:
@@ -96,8 +111,8 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
                 StackName: test-sc-provisioned-product-updater-step-function
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
-                TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
-                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/test.json
+                TemplatePath: BuiltSource::stacks/service-catalog-account/step-function.yml
+                TemplateConfiguration: BuiltSource::stacks/service-catalog-account/parameters/step-function/test.json
         - Name: Deploy-To-Live
           Actions:
             - ActionTypeId:
@@ -106,7 +121,7 @@ Resources:
                 Version: "1"
                 Provider: CloudFormation
               InputArtifacts:
-                - Name: GitHubSource
+                - Name: BuiltSource
               RunOrder: 1
               Name: Get-Latest-Version
               Configuration:
@@ -114,15 +129,15 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
                 StackName: live-sc-provisioned-product-updater-get-latest-version
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
-                TemplatePath: GitHubSource::stacks/service-catalog-account/apps/get-latest-version.yml
-                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/apps/parameters/get-latest-version/live.json
+                TemplatePath: BuiltSource::stacks/service-catalog-account/apps/get-latest-version.yml
+                TemplateConfiguration: BuiltSource::stacks/service-catalog-account/apps/parameters/get-latest-version/live.json
             - ActionTypeId:
                 Category: Deploy
                 Owner: AWS
                 Version: "1"
                 Provider: CloudFormation
               InputArtifacts:
-                - Name: GitHubSource
+                - Name: BuiltSource
               RunOrder: 2
               Name: Step-Function
               Configuration:
@@ -130,5 +145,5 @@ Resources:
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
                 StackName: live-sc-provisioned-product-updater-step-function
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
-                TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
-                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/live.json
+                TemplatePath: BuiltSource::stacks/service-catalog-account/step-function.yml
+                TemplateConfiguration: BuiltSource::stacks/service-catalog-account/parameters/step-function/live.json
