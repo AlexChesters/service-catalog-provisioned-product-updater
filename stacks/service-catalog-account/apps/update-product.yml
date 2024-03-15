@@ -1,0 +1,51 @@
+Transform: AWS::Serverless-2016-10-31
+Description: Infrastructure for service-catalog-provisioned-product-updater update-product
+Parameters:
+  Environment:
+    Description: The infrastructure environment
+    Type: String
+    AllowedValues:
+      - test
+      - live
+Resources:
+  FunctionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      RoleName: !Sub "${Environment}-sc-product-updater-update-product"
+      Policies:
+        - PolicyName: execution-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - servicecatalog:SearchProvisionedProducts
+                  - servicecatalog:UpdateProvisionedProduct
+                Resource:
+                  - "*"
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: update_product.main.handler
+      Runtime: python3.12
+      CodeUri: ../../../apps/update_product/build
+      Role: !GetAtt FunctionExecutionRole.Arn
+      FunctionName: !Sub "${Environment}-sc-product-updater-update-product"
+      MemorySize: 256
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: sc-provisioned-product-updater
+          POWERTOOLS_METRICS_NAMESPACE: !Sub "sc-provisioned-product-updater/${Environment}/update-product"
+          POWERTOOLS_TRACER_CAPTURE_ERROR: false
+          LOG_LEVEL: INFO

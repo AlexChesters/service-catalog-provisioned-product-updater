@@ -2,12 +2,15 @@
 
 clean:
 	cd apps/get_latest_version && $(MAKE) clean
+	cd apps/update_product && $(MAKE) clean
 
 test:
 	cd apps/get_latest_version && $(MAKE) test
+	cd apps/update_product && $(MAKE) test
 
 package:
 	cd apps/get_latest_version && $(MAKE) package
+	cd apps/update_product && $(MAKE) package
 
 install_poetry:
 	( \

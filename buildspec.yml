@@ -8,5 +8,6 @@ phases:
     commands:
       - make build
       - aws cloudformation package --template-file ./stacks/service-catalog-account/apps/get-latest-version.yml --s3-bucket $ARTIFACTS_BUCKET --s3-prefix artifacts/service-catalog-provisioned-product-inspector/get_latest_version --output-template-file ./stacks/service-catalog-account/apps/get-latest-version.yml
+      - aws cloudformation package --template-file ./stacks/service-catalog-account/apps/update-product.yml --s3-bucket $ARTIFACTS_BUCKET --s3-prefix artifacts/service-catalog-provisioned-product-inspector/update_product --output-template-file ./stacks/service-catalog-account/apps/update-product.yml
 artifacts:
   files: "**/*"

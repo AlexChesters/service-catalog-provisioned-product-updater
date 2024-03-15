@@ -1,0 +1,9 @@
+{
+  "Parameters": {
+    "Environment": "live"
+  },
+  "Tags": {
+    "Project": "service-catalog-provisioned-product-updater",
+    "Environment": "live"
+  }
+}
