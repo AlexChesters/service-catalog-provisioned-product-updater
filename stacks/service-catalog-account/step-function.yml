@@ -32,18 +32,29 @@ Resources:
                     - sts:AssumeRole
                   Resource:
                     - !Ref ListAccountsRoleArn
+                - Effect: Allow
+                  Action:
+                    - servicecatalog:DescribeProduct
+                  Resource:
+                    - !Sub "arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*"
   StateMachine:
     Type: AWS::StepFunctions::StateMachine
     Properties:
       StateMachineName: !Sub "${Environment}-sc-provisioned-product-updater"
       RoleArn: !GetAtt StateMachineRole.Arn
       Definition:
-        StartAt: ListAccounts
+        StartAt: DescribeProduct
         States:
+          DescribeProduct:
+            Type: Task
+            Next: ListAccounts
+            Resource: arn:aws:states:::aws-sdk:servicecatalog:describeProduct
+            Parameters:
+              Name: $$.Execution.Input.product_name
           ListAccounts:
             Type: Task
             End: true
-            Parameters: {}
             Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
+            # Parameters: {}
             Credentials:
               RoleArn: !Ref ListAccountsRoleArn
