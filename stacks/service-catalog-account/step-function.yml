@@ -55,6 +55,6 @@ Resources:
             Type: Task
             End: true
             Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
-            # Parameters: {}
+            Parameters: {}
             Credentials:
               RoleArn: !Ref ListAccountsRoleArn
