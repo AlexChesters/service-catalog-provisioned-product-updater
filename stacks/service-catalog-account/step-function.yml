@@ -68,6 +68,10 @@ Resources:
           ProcessAccounts:
             Type: Map
             ItemsPath: $.list_accounts_result.Accounts
+            ItemSelector:
+              account.$: $$.Map.Item.Value.Id
+              product_name.$: $.product_name
+              latest_version_id.$: $.describe_product_result.latest_version_id
             End: true
             MaxConcurrency: 3
             Iterator:
