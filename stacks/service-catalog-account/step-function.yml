@@ -75,8 +75,16 @@ Resources:
             End: true
             MaxConcurrency: 3
             Iterator:
-              StartAt: SearchProvisionedProducts
+              StartAt: UpdateProduct
               States:
-                SearchProvisionedProducts:
-                  Type: Pass
+                UpdateProduct:
+                  Type: Task
                   End: true
+                  Resource: arn:aws:states:::lambda:invoke
+                  Parameters:
+                    # despite the parameter being called FunctionName, it actually takes an ARN
+                    FunctionName: !Sub "arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${Environment}-sc-product-updater-update-product"
+                    Payload:
+                      account.$: $.account
+                      product_name.$: $.product_name
+                      latest_version_id.$: $.latest_version_id
