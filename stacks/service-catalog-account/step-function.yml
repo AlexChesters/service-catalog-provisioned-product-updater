@@ -59,9 +59,19 @@ Resources:
                 product_name.$: $$.Execution.Input.product_name
           ListAccounts:
             Type: Task
-            End: true
+            Next: ProcessAccounts
             Resource: arn:aws:states:::aws-sdk:organizations:listAccounts
             Parameters: {}
             ResultPath: $.accounts
             Credentials:
               RoleArn: !Ref ListAccountsRoleArn
+          ProcessAccounts:
+            Type: Map
+            End: true
+            MaxConcurrency: 3
+            Iterator:
+              StartAt: SearchProvisionedProducts
+              States:
+                SearchProvisionedProducts:
+                  Type: Pass
+                  End: true
