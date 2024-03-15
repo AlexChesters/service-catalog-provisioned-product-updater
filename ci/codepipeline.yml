@@ -1,0 +1,66 @@
+Description: service-catalog-provisioned-product-updater
+Resources:
+  CodePipeline:
+    Type: AWS::CodePipeline::Pipeline
+    Properties:
+      ArtifactStore:
+        Type: S3
+        Location: !ImportValue ci-infrastructure-artifacts-bucket-name
+      Name: service-catalog-provisioned-product-updater
+      RestartExecutionOnUpdate: true
+      RoleArn: !ImportValue ci-infrastructure-codepipeline-base-execution-iam-role
+      PipelineType: V2
+      Stages:
+        - Name: Source
+          Actions:
+            - ActionTypeId:
+                Category: Source
+                Owner: AWS
+                Version: "1"
+                Provider: CodeStarSourceConnection
+              OutputArtifacts:
+                - Name: GitHubSource
+              RunOrder: 1
+              Name: Clone-From-GitHub
+              Namespace: SourceVariables
+              Configuration:
+                ConnectionArn: !ImportValue ci-infrastructure-github-codestar-connection
+                FullRepositoryId: AlexChesters/service-catalog-provisioned-product-updater
+                BranchName: main
+                OutputArtifactFormat: CODE_ZIP
+        - Name: Deploy-To-Test
+          Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: CloudFormation
+              InputArtifacts:
+                - Name: GitHubSource
+              RunOrder: 1
+              Name: Step-Function
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                StackName: test-sc-provisioned-product-updater
+                RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
+                TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
+                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/test.json
+        - Name: Deploy-To-Live
+          Actions:
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: CloudFormation
+              InputArtifacts:
+                - Name: GitHubSource
+              RunOrder: 1
+              Name: Step-Function
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                StackName: live-sc-provisioned-product-updater
+                RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
+                TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
+                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/live.json

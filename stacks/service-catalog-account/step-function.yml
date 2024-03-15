@@ -1,0 +1,31 @@
+Description: step function to update all provisioned products of a service catalog product to the latest version
+Parameters:
+  Environment:
+    Description: the infrastructure environment
+    Type: String
+    Default: live
+    AllowedValues:
+      - test
+      - live
+Resources:
+  StateMachineRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: states.amazonaws.com
+      RoleName: !Sub "${Environment}-sc-provisioned-product-updater-role"
+      # Policies:
+      #   - PolicyName: state-machine-policy
+      #     PolicyDocument:
+      #       Version: 2012-10-17
+      #       Statement:
+      #           - Effect: Allow
+      #             Action:
+      #               - lambda:InvokeFunction
+      #             Resource:
+      #               - !GetAtt Function.Arn
