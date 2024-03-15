@@ -1,0 +1,50 @@
+Transform: AWS::Serverless-2016-10-31
+Description: Infrastructure for service-catalog-provisioned-product-updater get-latest-version
+Parameters:
+  Environment:
+    Description: The infrastructure environment
+    Type: String
+    AllowedValues:
+      - test
+      - live
+Resources:
+  FunctionExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      RoleName: !Sub "${Environment}-sc-product-updater-get-latest-version"
+      Policies:
+        - PolicyName: execution-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - servicecatalog:DescribeProduct
+                Resource:
+                  - !Sub "arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*"
+  Function:
+    Type: AWS::Serverless::Function
+    Properties:
+      Handler: get_latest_version.main.handler
+      Runtime: python3.12
+      CodeUri: ../../../apps/get_latest_version/build
+      Role: !GetAtt FunctionExecutionRole.Arn
+      FunctionName: !Sub "${Environment}-sc-product-updater-get-latest-version"
+      MemorySize: 256
+      Timeout: 30
+      Tracing: Active
+      Environment:
+        Variables:
+          POWERTOOLS_SERVICE_NAME: sc-provisioned-product-updater
+          POWERTOOLS_METRICS_NAMESPACE: !Sub "sc-provisioned-product-updater/${Environment}/get-latest-version"
+          POWERTOOLS_TRACER_CAPTURE_ERROR: false
+          LOG_LEVEL: INFO

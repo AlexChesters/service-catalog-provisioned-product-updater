@@ -1,0 +1,12 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.9
+  build:
+    commands:
+      - make build
+      - aws cloudformation package --template-file ./stacks/service-catalog-account/apps/get-latest-version.yml --s3-bucket $ARTIFACTS_BUCKET --s3-prefix artifacts/service-catalog-provisioned-product-inspector/get_latest_version --output-template-file ./stacks/service-catalog-account/apps/get-latest-version.yml
+artifacts:
+  files: "**/*"

@@ -1,5 +1,41 @@
 Description: service-catalog-provisioned-product-updater
 Resources:
+  CodeBuildRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Statement:
+          - Action: sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service: codebuild.amazonaws.com
+      ManagedPolicyArns:
+        - !ImportValue ci-infrastructure-codebuild-base-iam-policy
+  CodeBuildProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+        Location: !ImportValue ci-infrastructure-artifacts-bucket-name
+        Path: /artifacts/sc-provisioned-product-updater/
+        Packaging: NONE
+        Name: build
+        NamespaceType: BUILD_ID
+      TimeoutInMinutes: 5
+      Description: Builds sc-provisioned-product-updater
+      Environment:
+        ComputeType: BUILD_GENERAL1_SMALL
+        Image: aws/codebuild/amazonlinux2-aarch64-standard:3.0
+        Type: ARM_CONTAINER
+        EnvironmentVariables:
+          - Value: !ImportValue ci-infrastructure-artifacts-bucket-name
+            Name: ARTIFACTS_BUCKET
+            Type: PLAINTEXT
+      Name: sc-provisioned-product-updater
+      ServiceRole: !GetAtt CodeBuildRole.Arn
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: buildspec.yml
   CodePipeline:
     Type: AWS::CodePipeline::Pipeline
     Properties:
@@ -38,11 +74,27 @@ Resources:
               InputArtifacts:
                 - Name: GitHubSource
               RunOrder: 1
+              Name: Get-Latest-Version
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                StackName: test-sc-provisioned-product-updater-get-latest-version
+                RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
+                TemplatePath: GitHubSource::stacks/service-catalog-account/apps/get-latest-version.yml
+                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/apps/parameters/get-latest-version/test.json
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: CloudFormation
+              InputArtifacts:
+                - Name: GitHubSource
+              RunOrder: 2
               Name: Step-Function
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
-                StackName: test-sc-provisioned-product-updater
+                StackName: test-sc-provisioned-product-updater-step-function
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
                 TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
                 TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/test.json
@@ -56,11 +108,27 @@ Resources:
               InputArtifacts:
                 - Name: GitHubSource
               RunOrder: 1
+              Name: Get-Latest-Version
+              Configuration:
+                ActionMode: REPLACE_ON_FAILURE
+                Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
+                StackName: live-sc-provisioned-product-updater-get-latest-version
+                RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
+                TemplatePath: GitHubSource::stacks/service-catalog-account/apps/get-latest-version.yml
+                TemplateConfiguration: GitHubSource::stacks/service-catalog-account/apps/parameters/get-latest-version/live.json
+            - ActionTypeId:
+                Category: Deploy
+                Owner: AWS
+                Version: "1"
+                Provider: CloudFormation
+              InputArtifacts:
+                - Name: GitHubSource
+              RunOrder: 2
               Name: Step-Function
               Configuration:
                 ActionMode: REPLACE_ON_FAILURE
                 Capabilities: CAPABILITY_NAMED_IAM,CAPABILITY_AUTO_EXPAND
-                StackName: live-sc-provisioned-product-updater
+                StackName: live-sc-provisioned-product-updater-step-function
                 RoleArn: !ImportValue ci-infrastructure-codepipeline-base-cloudformation-iam-role
                 TemplatePath: GitHubSource::stacks/service-catalog-account/step-function.yml
                 TemplateConfiguration: GitHubSource::stacks/service-catalog-account/parameters/step-function/live.json
