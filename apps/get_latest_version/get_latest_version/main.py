@@ -10,6 +10,6 @@ def handler(event, _context):
 
     for artifact in response["ProvisioningArtifacts"]:
         if artifact["Guidance"] == "DEFAULT":
-            return artifact
+            return artifact["Id"]
 
     raise Exception("default artifact not found")
